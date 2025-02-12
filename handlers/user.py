@@ -18,6 +18,10 @@ from .callbacks import *
 from .markups import *
 from .states import *
 
+async def update_debts():
+    parser = Parser(table_path)
+    await parser.update_debts()
+
 @dp.message(Command('start'))
 async def start_message_handler(message: Message, state: FSMContext):
     await state.clear()
@@ -31,6 +35,12 @@ async def send_start_message(message: Message):
         text=await generate_start_text(message),
     )
     
+@dp.message(Command('update'))
+async def update_message_handler(message: Message):
+    parser = Parser(table_path)
+    await parser.update_debts()
+    await message.answer("Таблица успешно обновлена")
+    
 @dp.message(Command('debt'))
 async def debt_message_handler(message: Message, state: FSMContext):
     await state.clear()
@@ -43,18 +53,21 @@ async def debt_message_handler(message: Message, state: FSMContext):
     
     parser = Parser(table_path)
     debt = await parser.get_debt(garage_number)
-    text = await generate_debt_text(debt)
+    payment = await parser.get_payment(garage_number)
+    text = await generate_debt_text(debt, payment)
     
     await message.reply(
         text=text,
     )
     
-async def generate_debt_text(debt: str):
+async def generate_debt_text(debt: str, payment: str):
+    text = f"Взнос за гараж {payment}₽\n"
     if debt is None:
         return "Гараж не найден"
     elif debt < 0:
-        return f"Долг по гаражу составляет {int(debt) * -1}₽"
-    return f"Переплата по гаражу составляет {debt}₽"
+        text += f"Долг по гаражу составляет {int(debt) * -1}₽"
+    text += f"Переплата по гаражу составляет {debt}₽"
+    return text
 
 
 @dp.message(Command('doadmin'))

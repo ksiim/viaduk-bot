@@ -45,8 +45,8 @@ async def update_message_handler(message: Message):
 async def debt_message_handler(message: Message, state: FSMContext):
     await state.clear()
     
-    garage_number = message.text.split(' ')[1]
     try:
+        garage_number = message.text.split(' ')[1]
         garage_number = int(garage_number)
     except ValueError:
         return await message.answer("Номер гаража должен быть числом")
@@ -66,7 +66,8 @@ async def generate_debt_text(debt: str, payment: str):
         return "Гараж не найден"
     elif debt < 0:
         text += f"Долг по гаражу составляет {int(debt) * -1}₽"
-    text += f"Переплата по гаражу составляет {debt}₽"
+    else:
+        text += f"Переплата по гаражу составляет {debt}₽"
     return text
 
 

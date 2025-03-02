@@ -1,5 +1,7 @@
 import openpyxl
 from abc import ABC, abstractmethod
+from bot import bot
+from models.dbs.orm import Orm
 
 
 class BaseParser(ABC):
@@ -59,7 +61,15 @@ class Parser(BaseParser):
             if row[0] == None:
                 break
             debt, additional_value = row[1], row[2]
-            new_debt = debt - additional_value
+            if debt == None or additional_value == None:
+                continue
+            try:
+                new_debt = int(debt) - int(additional_value)
+            except:
+                admins = await Orm.get_admins()
+                for admin in admins:
+                    await bot.send_message(admin.telegram_id, f"Ошибка при обновлении в строке {index + 1} с долгом {debt} и дополнительным значением {additional_value}")
+                new_debt = debt
             self.sheet.cell(row=index + 1, column=2, value=new_debt)
         self.workbook.save(self.file_path)
     
